@@ -130,7 +130,22 @@ namespace eosio { namespace ship_protocol {
 
    EOSIO_REFLECT(get_blocks_ack_request_v0, num_messages)
 
-   using request = std::variant<get_status_request_v0, get_blocks_request_v0, get_blocks_ack_request_v0, get_blocks_request_v1>;
+   struct get_blocks_request_v101 {
+      uint32_t                    start_block_num        = {};
+      uint32_t                    end_block_num          = {};
+      uint32_t                    max_messages_in_flight = {};
+      std::vector<block_position> have_positions         = {};
+      bool                        irreversible_only      = {};
+      bool                        fetch_block            = {};
+      bool                        fetch_traces           = {};
+      bool                        fetch_deltas           = {};
+      bool                        fetch_backup           = {};
+   };
+
+   EOSIO_REFLECT(get_blocks_request_v101, start_block_num, end_block_num, max_messages_in_flight, have_positions,
+                 irreversible_only, fetch_block, fetch_traces, fetch_deltas, fetch_backup)
+
+   using request = std::variant<get_status_request_v0, get_blocks_request_v0, get_blocks_ack_request_v0,get_blocks_request_v101>;
 
    struct get_blocks_result_base {
       block_position                head              = {};
@@ -148,6 +163,15 @@ namespace eosio { namespace ship_protocol {
    };
 
    EOSIO_REFLECT(get_blocks_result_v0, base get_blocks_result_base, block, traces, deltas)
+
+   struct get_blocks_result_v101 : get_blocks_result_base {
+      std::optional<eosio::input_stream> block  = {};
+      std::optional<eosio::input_stream> traces = {};
+      std::optional<eosio::input_stream> deltas = {};
+      std::optional<eosio::input_stream> backup_block = {};
+   };
+
+   EOSIO_REFLECT(get_blocks_result_v101, base get_blocks_result_base, block, traces, deltas, backup_block)
 
    struct row_v0 {
       bool                present = {};     // false (not present), true (present, old / new)
@@ -469,7 +493,7 @@ namespace eosio { namespace ship_protocol {
 
    EOSIO_REFLECT(get_blocks_result_v2, base get_blocks_result_base, block, block_header, traces, deltas)
 
-   using result = std::variant<get_status_result_v0, get_blocks_result_v0, get_blocks_result_v1, get_blocks_result_v2>;
+   using result = std::variant<get_status_result_v0, get_blocks_result_v0, get_blocks_result_v101, get_blocks_result_v2>;
 
    struct transaction_header {
       eosio::time_point_sec expiration          = {};
