@@ -685,6 +685,49 @@ namespace eosio { namespace ship_protocol {
 
    EOSIO_REFLECT(producer_authority_schedule, version, producers)
 
+   struct producer_authority_add {
+      std::optional<block_signing_authority> authority;
+   };
+
+   EOSIO_REFLECT(producer_authority_add, authority)
+
+   struct producer_authority_modify {
+      std::optional<block_signing_authority> authority;
+   };
+
+   EOSIO_REFLECT(producer_authority_modify, authority)
+
+   struct producer_authority_del {
+      std::optional<block_signing_authority> authority;
+   };
+
+   EOSIO_REFLECT(producer_authority_del, authority)
+
+   using producer_change_record = std::variant<producer_authority_add, producer_authority_modify, producer_authority_del>;
+
+   struct pair_name_producer_change_record {
+      eosio::name               key   = {};
+      producer_change_record    value = {};
+   };
+
+   EOSIO_REFLECT(pair_name_producer_change_record, key, value)
+
+   struct producer_change_map {
+      bool                                   clear_existed  = {};
+      uint32_t                               producer_count = {};
+      std::vector<pair_name_producer_change_record> changes = {};
+   };
+
+   EOSIO_REFLECT(producer_change_map, clear_existed, producer_count, changes)
+
+   struct producer_schedule_change {
+      uint32_t                 version     = {};
+      producer_change_map      main_change = {};
+      producer_change_map      backup_change = {};
+   };
+
+   EOSIO_REFLECT(producer_schedule_change, version, main_change, backup_change)
+
    struct chain_config_v0 {
       uint64_t max_block_net_usage                 = {};
       uint32_t target_block_net_usage_pct          = {};
@@ -809,7 +852,16 @@ namespace eosio { namespace ship_protocol {
 
    EOSIO_REFLECT(global_property_v2, base global_property_v1, kv_configuration, wasm_configuration, extension)
 
-   using global_property = std::variant<global_property_v0, global_property_v1, global_property_v2>;
+   struct global_property_v3 {
+      std::optional<uint32_t>    proposed_schedule_block_num = {};
+      producer_schedule          proposed_schedule           = {};
+      producer_schedule_change   proposed_schedule_change    = {};
+      chain_config               configuration               = {};
+   };
+
+   EOSIO_REFLECT(global_property_v3, proposed_schedule_block_num, proposed_schedule, proposed_schedule_change, configuration)
+
+   using global_property = std::variant<global_property_v0, global_property_v1, global_property_v3>;
 
    struct generated_transaction_v0 {
       eosio::name         sender     = {};
